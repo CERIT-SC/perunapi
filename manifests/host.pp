@@ -7,7 +7,7 @@ define perunapi::host (
 
   if $ensure == 'present' {
 
-    $_query_hosts = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_hosts = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                    'facilitiesManager', 'getHostsByHostname', { 'hostname' => $facts['fqdn']}, $facts['fqdn'])
 
     if $_query_hosts != undef {
@@ -21,7 +21,7 @@ define perunapi::host (
           if $_attr =~ /:host:/ {
              
              $_host_ids.each |$_host_id| {
-                $_attribute = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+                $_attribute = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                              'attributesManager', 'getAttribute', {'host' => $_host_id, 'attributeName' => $_attr}, "${_host_id}${_attr}")
 
                 if $attributes[$_attr] == 'null' {
@@ -33,7 +33,7 @@ define perunapi::host (
                 }
                 if $_attribute['id'] != undef and $_attribute['value'] != $_newattr {
                    $_newval = {'value' => $_newattr}
-                   $_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+                   $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                'attributesManager', 'setAttribute', {'host' => $_host_id, 
                                                                      'attribute' => merge($_attribute, $_newval)}, 'nocache')
 

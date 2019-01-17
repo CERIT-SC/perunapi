@@ -1,8 +1,8 @@
 class perunapi (
   Integer $version            = 1,
-  String  $perun_api_host     = $::perunapi::params::perun_api_host,
-  String  $perun_api_user     = $::perunapi::params::perun_api_user,
-  String  $perun_api_password = $::perunapi::params::perun_api_password,
+  String  $perun_api_host     = $perunapi::params::perun_api_host,
+  String  $perun_api_user     = $perunapi::params::perun_api_user,
+  String  $perun_api_password = $perunapi::params::perun_api_password,
 ) inherits ::perunapi::params {
  
   $_perunapi = lookup('perunapi')

@@ -1,8 +1,8 @@
 define perunapi::facility2 (
          $ensure,
   String $description,
-  Hash $manager        = { 'users' => [$::perunapi::user]},   
-  Array $owner         = [$::perunapi::user],
+  Hash $manager        = { 'users' => [$perunapi::user]},   
+  Array $owner         = [$perunapi::user],
   Integer $vo,
   Array $customhosts   = [],
   Hash  $attributes    = {},
@@ -11,13 +11,13 @@ define perunapi::facility2 (
 
   if $ensure == 'present' {
 
-    $_query = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                              'facilitiesManager', 'getFacilityByName', {'name' => $title}, $title)
 
     if $_query != undef and $_query['name'] == 'FacilityNotExistsException' {   
        $_createfacility_req = { 'facility' => {'id' => 0, 'name' => $title, 'description' => $description }}
 
-       $_resp = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_resp = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                'facilitiesManager', 'createFacility', $_createfacility_req, 'nocache')
 
        if $_resp['id'] != undef {
@@ -37,7 +37,7 @@ define perunapi::facility2 (
        fail("Did not find or create facility: $title")
     }
 
-    $_query_admin_users = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_admin_users = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'facilitiesManager', 'getAdmins', {'facility' => $_facility_id, 'onlyDirectAdmins' => 'true' })
 
     $_adm_users = $_query_admin_users.map |$user| {
@@ -46,7 +46,7 @@ define perunapi::facility2 (
 
     $_add_adm_users = $manager['users'] - $_adm_users
 
-    $_query_admin_groups = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_admin_groups = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'facilitiesManager', 'getAdminGroups', {'facility' => $_facility_id})
 
     $_adm_groups = $_query_admin_groups.map |$_group| {
@@ -57,10 +57,10 @@ define perunapi::facility2 (
 
     if $_add_adm_users.size > 0 {
         $_add_adm_users.each |$_user| {
-           $_query_user = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+           $_query_user = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                          'membersManager', 'findMembersInVo', {'searchString' => $user, 'vo' => $vo}, $_user)
            $_user_id = $_query_user[0]['userId']
-           perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+           perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                           'facilitiesManager', 'addAdmin', {'facility' => $_facility_id , 'user' => $_user_id}, 'nocache')
            perun_api_flushcache('facilitiesManager', 'getAdmins')
         }
@@ -71,10 +71,10 @@ define perunapi::facility2 (
     
     if $_add_adm_groups.size > 0 {
         $_add_adm_groups.each |$_group| {
-           $_query_group = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+           $_query_group = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                          'groupsManager', 'getGroupByName', {'name' => $_group, 'vo' => $vo}, $_group)
            $_group_id = $_query_group['id']
-           perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+           perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                           'facilitiesManager', 'addAdmin', {'facility' => $_facility_id , 'authorizedGroup' => $_group_id}, 'nocache')
            perun_api_flushcache('facilitiesManager', 'getAdminGroups')        
         }
@@ -83,7 +83,7 @@ define perunapi::facility2 (
         }
     }
 
-    $_query_owners = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_owners = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                     'facilitiesManager', 'getOwners', {'facility' => $_facility_id})
 
     $_owners = $_query_owners.map |$_owner| {
@@ -93,7 +93,7 @@ define perunapi::facility2 (
     $_add_owners = $owner - $_owners
 
     if $_add_owners.size > 0 {
-       $_all_owners = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_all_owners = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'ownersManager', 'getOwners', {})
 
        $_add_owner_ids = $_all_owners.filter |$_owner| {
@@ -103,7 +103,7 @@ define perunapi::facility2 (
        }
 
        $_add_owner_ids.each |$_id| {
-           perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+           perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                          'facilitiesManager', 'addOwner', {'facility' => $_facility_id, 'owner' => $_id}, 'nocache')
        }
        notify{'addOwners':
@@ -112,7 +112,7 @@ define perunapi::facility2 (
        perun_api_flushcache('facilitiesManager', 'getOwners')
     }
 
-    $_query_hosts = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_hosts = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                    'facilitiesManager', 'getHosts', {'facility' => $_facility_id})
 
     $_query_hostnames = $_query_hosts.map |$_host| {
@@ -120,7 +120,7 @@ define perunapi::facility2 (
     }
 
     if ! ($facts['fqdn'] in $_query_hostnames) {
-       perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                       'facilitiesManager', 'addHost', {'facility' => $_facility_id, 'hostname' => $facts['fqdn']}, 'nocache')
        perun_api_flushcache('facilitiesManager', 'getHosts')
        notify{'addHost_self':
@@ -131,7 +131,7 @@ define perunapi::facility2 (
     if $customhosts.size > 0 {
        $customhosts.each |$_host| {
           if ! ($_host in $_query_hostnames) {
-              perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+              perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                              'facilitiesManager', 'addHost', {'facility' => $_facility_id, 'hostname' => $_host}, 'nocache')
               perun_api_flushcache('facilitiesManager', 'getHosts')
               notify{"addHost_$_host":
@@ -155,7 +155,7 @@ define perunapi::facility2 (
               $_f_host['hostname'] == $_remove_host
           }
           
-          perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+          perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                          'facilitiesManager', 'removeHost', { "host" => $_hostid[0]['id'] }, 'nocache')
           notify{"removed${_hostid[0]['hostname']}":
             message => "Removed host ${_hostid[0]['hostname']} from facility $title",
@@ -169,7 +169,7 @@ define perunapi::facility2 (
     if $_filtered_data.keys.size > 0 {
       $_tmp_array = $_filtered_data.reduce([]) |Array $memo, Array $_item| {
 
-        $_attribute = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+        $_attribute = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                     'attributesManager', 'getAttribute', {'facility' => $_facility_id, 'attributeName' => $_item[0]},
                                     $_item[0])
 
@@ -191,7 +191,7 @@ define perunapi::facility2 (
 
       $_final = $_tmp_array.filter |$_item| {$_item != undef}
 
-      $_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+      $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                               'attributesManager', 'setAttributes', { 'facility' => $_facility_id, 'attributes' => $_final }, 'nocache')
 
 
@@ -206,7 +206,7 @@ define perunapi::facility2 (
 
     if $services.keys.size > 0 {
        $services.keys.each |$_service| {
-          $_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+          $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                 'servicesManager', 'getServiceByName', {'name' => $_service}, $_service)
           if $_res['errorId'] != undef and $_res['message'] != undef {
              fail("Cannot get service $_service id")
@@ -217,7 +217,7 @@ define perunapi::facility2 (
           } else {
              $_destination = $services[$_service]['destination']
           }
-          $_dest_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+          $_dest_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                       'servicesManager', 'getDestinations', {'service' => $_service_id, 'facility' => $_facility_id}, $_service)
           $_assigned_dests = $_dest_res.map |$_dest| {
              $_dest['destination']
@@ -229,7 +229,7 @@ define perunapi::facility2 (
              } else {
                 $_propagation = 'PARALLEL'
              }
-             perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+             perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                            'servicesManager', 'addDestination', 
                            {'service' => $_service_id, 'facility' => $_facility_id, 'destination' => $_destination, 
                             'type' => $services[$_service]['type'], 'propagationType' => $_propagation}, 'nocache')
@@ -244,7 +244,7 @@ define perunapi::facility2 (
           # remove only services on 'all' hosts, do not remove named hosts. hack for pbsmon_service
           if $_remove_dests.size > 0 and $services[$_service]['destination'] == 'all' {
              $_remove_dests.each |$_r_dest| {
-                perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+                perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                'servicesManager', 'removeDestination',
                                {'service' => $_service_id, 'facility' => $_facility_id, 'destination' => $_r_dest,
                                 'type' => $services[$_service]['type']}, 'nocache')

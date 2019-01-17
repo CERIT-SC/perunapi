@@ -8,7 +8,7 @@ define perunapi::resource (
 
   if $ensure == 'present' {
 
-    $_query_fa = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_fa = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                'facilitiesManager', 'getFacilityByName', {'name' => $facility}, $facility)
 
     if $_query_fa['id'] != undef {
@@ -17,7 +17,7 @@ define perunapi::resource (
        fail("No facility named ${facility}")
     }
 
-    $_query_vo = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_vo = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                 'vosManager', 'getVoByShortName', {'shortName' => $resource['vo']}, $resource['vo'])
 
     if $_query_vo['id'] != undef {
@@ -26,13 +26,13 @@ define perunapi::resource (
        fail("No VO named ${resource['vo']}")
     }
   
-    $_query_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+    $_query_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                  'resourcesManager', 'getResourceByName', {'vo' => $_vo_id, 'facility' => $_facility_id,
                                                                            'name' => $resource['name']}, 
                                                                            "${_vo_id}-${_facility_id}-${resource['name']}")
 
     if $_query_res['id'] == undef {
-       $_create_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_create_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                      'resourcesManager', 'createResource', 
                                      {'resource' => {'name' => $resource['name'], 'description' => $resource['description']},
                                       'vo' => $_vo_id, 'facility' => $_facility_id}, 'nocache')
@@ -48,13 +48,13 @@ define perunapi::resource (
     }
 
     if $resource['tags'] != undef {
-       $_query_tags = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_query_tags = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                        'resourcesManager', 'getAllResourcesTagsForResource', {'resource' => $_resource_id}, $_resource_id)
        $_tags_name = $_query_tags.map |$_tag_obj| {
           $_tag_obj['tagName']
        }
        
-       $_query_all_tags = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_query_all_tags = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'resourcesManager', 'getAllResourcesTagsForVo', {'vo' => $_vo_id}, $resource['vo'])
        
        $resource['tags'].each |$_tag| {
@@ -65,7 +65,7 @@ define perunapi::resource (
              if $_tag_obj == undef {
                 fail("Unknown tag: $_tag")
              }
-             $_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+             $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                     'resourcesManager', 'assignResourceTagToResource', {'resourceTag' => $_tag_obj[0], 'resource' => $_resource_id}, 'nocache')
              perun_api_flushcache('resourcesManager', 'getAllResourcesTagsForResource', $_resource_id)
              notify{"setTagForResource${_resource_id}${_tag}":
@@ -76,7 +76,7 @@ define perunapi::resource (
     }
 
     if $attributes.keys.size > 0 {
-       $_pending_a = perun_api_callback($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_pending_a = perun_api_callback($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'setAttribute')
        if $_pending_a != undef and $_pending_a['endTime'] == -1 {
           notify{"setAttributeTimeout${_resource_id}":
@@ -88,7 +88,7 @@ define perunapi::resource (
        $attributes.keys.each |$_attr| {
           if $_attr =~ /:resource:/ {
 
-             $_attribute = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+             $_attribute = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                           'attributesManager', 'getAttribute', {'resource' => $_resource_id, 'attributeName' => $_attr},
                                            $_attr)
              if $attributes[$_attr] == 'null' {
@@ -98,7 +98,7 @@ define perunapi::resource (
              }
              if $_attribute['id'] != undef and $_attribute['value'] != $_newattr {
                 $_newval = {'value' => $_newattr}
-                $_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+                $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                'attributesManager', 'setAttribute', {'resource' => $_resource_id, 
                                                                      'attribute' => merge($_attribute, $_newval)}, 'nocache')
 
@@ -127,7 +127,7 @@ define perunapi::resource (
     }
    
     if $services.keys.size > 0 {
-       $_pending_s = perun_api_callback($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_pending_s = perun_api_callback($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'assignService')
        if $_pending_s != undef and $_pending_s['endTime'] == -1 {
           notify{"assignServicesTimeout${_resource_id}":
@@ -139,7 +139,7 @@ define perunapi::resource (
        $services.keys.each |$_service| {
           if $resource['name'] in $services[$_service]['resources'] {
 
-              $_services_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+              $_services_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                              'resourcesManager', 'getAssignedServices', {'resource' => $_resource_id}, $_resource_id)
 
               $_services_list = $_services_res.map |$_s| {
@@ -147,14 +147,14 @@ define perunapi::resource (
               }
  
               if !($_service in $_services_list) {
-                 $_res = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+                 $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'servicesManager', 'getServiceByName', {'name' => $_service}, $_service)
                  if $_res['errorId'] != undef and $_res['message'] != undef {
                     fail("Cannot get service $_service id")
                  }
                  $_service_id = $_res['id']
 
-                 $_assign_resp = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+                 $_assign_resp = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                                 'resourcesManager', 'assignService', {'resource' => $_resource_id, 'service' => $_service_id}, 'nocache')
  
                  perun_api_flushcache('resourcesManager', 'getAssignedServices', $_resource_id)
@@ -175,7 +175,7 @@ define perunapi::resource (
     }
 
     if $resource['groupsfromresource'] != undef {
-       $_pending_g = perun_api_callback($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_pending_g = perun_api_callback($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'assignGroupsToResource')
        if $_pending_g != undef and $_pending_g['endTime'] == -1 {
           notify{"assignGroupsTimeout_${resource['groupsfromresource']}":
@@ -184,14 +184,14 @@ define perunapi::resource (
           return()
        }
 
-       $_query_src = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_query_src = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                     'resourcesManager', 'getAssignedGroups', { 'resource' => $resource['groupsfromresource'] }, 'nocache')
 
        if $_query_src != undef and $_query_src =~ Hash and $_query_src['errorId'] != undef and $_query_src['message'] != undef {
           fail("Cannot query source resource ${resource['groupsfromresource']} for groups. ${_query_src}")
        }
 
-       $_query_dst = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+       $_query_dst = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                     'resourcesManager', 'getAssignedGroups', { 'resource' => $_resource_id }, $_resource_id)
 
        $_add_groups = $_query_src - $_query_dst
@@ -201,7 +201,7 @@ define perunapi::resource (
            $_gr['id']
          }
 
-         $_res_gr = perun_api_call($::perunapi::perun_api_host, $::perunapi::perun_api_user, $::perunapi::perun_api_password,
+         $_res_gr = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                    'resourcesManager', 'assignGroupsToResource', {'resource' => $_resource_id, 'groups' => $_add_g_ids}, 'nocache')
 
          perun_api_flushcache('resourcesManager', 'getAssignedGroups', $_resource_id)
