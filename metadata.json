@@ -1,10 +1,10 @@
 {
   "name": "perunapi",
-  "version": "0.9.0",
+  "version": "0.0.1",
   "author": "ceritsc",
   "summary": "Perun API",
   "license": "MIT",
-  "source": "https://github.com/CERIT-SC/perunapi",
+  "source": "https://github.com/CERIT-SC/perunapi.git",
   "project_page": "https://github.com/CERIT-SC/perunapi",
   "issues_url": "https://github.com/CERIT-SC/perunapi/issues",
   "dependencies": [
@@ -12,10 +12,6 @@
       "name": "puppetlabs/stdlib",
       "version_requirement": ">= 4.0.0"
     },
-    {
-      "name": "ceritsc/yum",
-      "version_requirement": ">= 0.9.0"
-    }
   ],
   "data_provider": null,
   "tags": [
@@ -24,7 +20,7 @@
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": "3.3"
+      "version_requirement": "5.0"
     }
   ]
 }
