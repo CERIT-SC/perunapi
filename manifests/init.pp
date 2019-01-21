@@ -15,55 +15,27 @@ class perunapi (
         fail("Cannot get VO ${_perunapi['facility']['vo']} ID")
      }
 
-     if $version == 0 {
-
-       perunapi::facility{$_perunapi['facility']['name']:
-         ensure       => present,
-         description  => $_perunapi['facility']['description'],
-         manager      => $_perunapi['facility']['manager'],
-         owner        => $_perunapi['facility']['owner'],
-         vo           => $_query['id'],
-         customhosts  => $_perunapi['facility']['customhosts'],
-         attributes   => $_perunapi['attributes'],
-         services     => $_perunapi['services'],
-         
-       }
-
-      if $_perunapi['resources'] != undef {
-         $_perunapi['resources'].each |$_resource| {
-            perunapi::resource{"${_resource['name']}${_resource['vo']}":
-              resource   => $_resource,
-              facility   => $_perunapi['facility']['name'],
-              attributes => $_perunapi['attributes'],
-              services   => $_perunapi['services'],
-            }
-        }
-      }
-     } else {
-
-        perunapi::facility2{$_perunapi['facility']['name']:
-         ensure       => present,
-         description  => $_perunapi['facility']['description'],
-         manager      => $_perunapi['facility']['manager'],
-         owner        => $_perunapi['facility']['owner'],
-         vo           => $_query['id'],
-         customhosts  => $_perunapi['facility']['customhosts'],
-         attributes   => $_perunapi['attributes'],
-         services     => $_perunapi['services'],
-         
+        perunapi::facility{$_perunapi['facility']['name']:
+           ensure       => present,
+           description  => $_perunapi['facility']['description'],
+           manager      => $_perunapi['facility']['manager'],
+           owner        => $_perunapi['facility']['owner'],
+           vo           => $_query['id'],
+           customhosts  => $_perunapi['facility']['customhosts'],
+           attributes   => $_perunapi['attributes'],
+           services     => $_perunapi['services'],
        }
 
        if $_perunapi['resources'] != undef {
-         $_perunapi['resources'].each |$_resource| {
-              perunapi::resource2{"${_resource['name']}${_resource['vo']}":
-                resource   => $_resource,
-                facility   => $_perunapi['facility']['name'],
-                attributes => $_perunapi['attributes'],
-                services   => $_perunapi['services'],
+          $_perunapi['resources'].each |$_resource| {
+              perunapi::resource{"${_resource['name']}${_resource['vo']}":
+                 resource   => $_resource,
+                 facility   => $_perunapi['facility']['name'],
+                 attributes => $_perunapi['attributes'],
+                 services   => $_perunapi['services'],
               }
-        }
-      }
-     }
+          }
+       }
 
      perunapi::host{$_perunapi['facility']['name']:
         attributes => $_perunapi['attributes'],
@@ -73,5 +45,4 @@ class perunapi (
         attributes => $_perunapi['pbsmon'],
      }
   }
-
 }
