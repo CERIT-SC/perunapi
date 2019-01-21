@@ -1,4 +1,4 @@
-define perunapi::facility2 (
+define perunapi::facility (
          $ensure,
   String $description,
   Hash $manager        = { 'users' => [$perunapi::user]},   

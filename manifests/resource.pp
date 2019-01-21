@@ -1,4 +1,4 @@
-define perunapi::resource2 (
+define perunapi::resource (
        $ensure     = 'present',
   Hash $resource   = {},
   String $facility = '',
