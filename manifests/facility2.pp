@@ -200,7 +200,7 @@ define perunapi::facility2 (
       }
 
       if $_res != undef and $_res['errorId'] != undef and $_res['message'] != undef {
-        fail("Cannot set attributes. Reason: ${_res['message']}")
+        fail("Cannot set attributes. Reason: ${_res['message']}\nAttributes: ${_final}")
       }
     }
 
