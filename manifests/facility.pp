@@ -164,38 +164,46 @@ define perunapi::facility (
        perun_api_flushcache('facilitiesManager', 'getHosts')
     }
 
-    if $attributes.keys.size > 0 {
-       $attributes.keys.each |$_attr| {
-          if $_attr =~ /:facility:/ {
-             $_attribute = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
-                                          'attributesManager', 'getAttribute', {'facility' => $_facility_id, 'attributeName' => $_attr}, 
-                                          $_attr)
-             if $attributes[$_attr] == 'null' {
-                $_newattr = undef
-             } else { 
-                $_newattr = $attributes[$_attr]
-             }
-             if $_attribute['id'] != undef and $_attribute['value'] != $_newattr {
-                $_newval = {'value' => $_newattr}
+    $_filtered_data = $attributes.filter |$key, $value| { $key =~ /:facility:/ }
 
-                $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
-                               'attributesManager', 'setAttribute', {'facility' => $_facility_id, 'attribute' => merge($_attribute, $_newval)}, 'nocache')
-                if $_res != undef and $_res['errorId'] != undef and $_res['message'] != undef {
-                   notify{"Cannot set attribute: $_attr. Reason: ${_res['message']}":}
-                } else {
-                   perun_api_flushcache('attributesManager', 'getAttribute', $_attr)
-                   notify{"setAttribute_${_attr}":
-                     message => "Setting attribute ${_attr} to value ${_newattr}.",
-                  }
-                }
-             }
-             if $_attribute['id'] == undef {
-                notify{"Warning: undefined attribude name $_attr":}
-             }
-          }
-       }
+    if $_filtered_data.keys.size > 0 {
+      $_tmp_array = $_filtered_data.reduce([]) |Array $memo, Array $_item| {
+
+        $_attribute = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
+                                    'attributesManager', 'getAttribute', {'facility' => $_facility_id, 'attributeName' => $_item[0]},
+                                    $_item[0])
+
+        if $_item[1] == 'null' {
+           $_newattr = undef
+        } else {
+           $_newattr = $_item[1]
+        }
+
+        if $_attribute['id'] == undef {
+           notify{"Warning: undefined attribude name ${_item[0]}":}
+           $_result = []
+        } elsif $_attribute['value'] != $_newattr {
+           $_newval = {'value' => $_newattr}
+           $_result =  [merge($_attribute, $_newval)]
+        }
+        $memo + $_result
+      }
+
+      $_final = $_tmp_array.filter |$_item| {$_item != undef}
+
+      $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
+                              'attributesManager', 'setAttributes', { 'facility' => $_facility_id, 'attributes' => $_final }, 'nocache')
+
+
+      if $_res != undef and $_res['timeout'] == true {
+        return()
+      }
+
+      if $_res != undef and $_res['errorId'] != undef and $_res['message'] != undef {
+        fail("Cannot set attributes. Reason: ${_res['message']}")
+      }
     }
-  
+
     if $services.keys.size > 0 {
        $services.keys.each |$_service| {
           $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,

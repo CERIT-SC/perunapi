@@ -75,7 +75,9 @@ define perunapi::resource (
        }
     }
 
-    if $attributes.keys.size > 0 {
+    $_tmp_attributes = merge($attributes, $resource['attributes'])
+
+    if $_tmp_attributes.keys.size > 0 { 
        $_pending_a = perun_api_callback($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                         'setAttribute')
        if $_pending_a != undef and $_pending_a['endTime'] == -1 {
@@ -85,44 +87,42 @@ define perunapi::resource (
           return()
        }
 
-       $attributes.keys.each |$_attr| {
-          if $_attr =~ /:resource:/ {
+       $_filtered_data = $_tmp_attributes.filter |$key, $value| { $key =~ /:resource:/ }
+
+       $_tmp_array = $_filtered_data.reduce([]) |Array $memo, Array $_item| {
 
              $_attribute = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
-                                          'attributesManager', 'getAttribute', {'resource' => $_resource_id, 'attributeName' => $_attr},
-                                           $_attr)
-             if $attributes[$_attr] == 'null' {
+                                          'attributesManager', 'getAttribute', {'resource' => $_resource_id, 'attributeName' => $_item[0]}, $_item[0])
+
+             if $_item[1] == 'null' {
                 $_newattr = undef
              } else {
-                $_newattr = $attributes[$_attr]
+                $_newattr = $_item[1]
              }
-             if $_attribute['id'] != undef and $_attribute['value'] != $_newattr {
-                $_newval = {'value' => $_newattr}
-                $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
-                               'attributesManager', 'setAttribute', {'resource' => $_resource_id, 
-                                                                     'attribute' => merge($_attribute, $_newval)}, 'nocache')
 
-                perun_api_flushcache('attributesManager', 'getAttribute', $_attr)
+             if $_attribute['id'] == undef {
+               notify{"Warning: undefined attribude name ${_item[0]}":}
+               $_result = []
+             } elsif $_attribute['value'] != $_newattr {
+               $_newval = {'value' => $_newattr}
+               $_result = [merge($_attribute, $_newval)]
 
-                if $_res != undef and $_res['timeout'] == true {
-                   notify{"setAttribute_${_attr}_timeout":
-                     message => "Setting attribute ${_attr} to value ${_newattr}. Stopping setting more attributes.",
-                   }
-                   return()
-                }
+             }
+             $memo + $_result
+       }
 
-                if $_res != undef and $_res['errorId'] != undef and $_res['message'] != undef {
-                   fail("Cannot set attribute: $_attr. Reason: ${_res['message']}")
-                } else {
-                   notify{"setAttribute_${_attr}${_resource_id}":
-                     message => "Setting attribute ${_attr} to value ${_newattr}.",
-                  }
-                }
-            }
-            if $_attribute['id'] == undef {
-               notify{"Warning: undefined attribude name $_attr":}
-            }
-          }
+       $_final_array = $_tmp_array.filter |$_i| { $_i != undef }
+
+       $_res = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
+                              'attributesManager', 'setAttributes', { 'resource' => $_resource_id, 'attributes' => $_final_array }, 'nocache')
+
+
+       if $_res != undef and $_res['timeout'] == true {
+          return()
+       }
+
+       if $_res != undef and $_res['errorId'] != undef and $_res['message'] != undef {
+          fail("Cannot set attributes. Reason: ${_res['message']}")
        }
     }
    
