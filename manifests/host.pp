@@ -1,11 +1,17 @@
 define perunapi::host (
            $ensure = 'present',
   String $hostname = $facts['fqdn'],
-  String $cluster  = $::clusterfullname,
+  String $cluster  = undef,
   Hash $attributes = {},
 ) {
 
   if $ensure == 'present' {
+
+    if $::clusterfullname != undef {
+       $cluster = $::clusterfullname
+    } else {
+       $cluster = $hostname
+    }
 
     $_query_hosts = perun_api_call($perunapi::perun_api_host, $perunapi::perun_api_user, $perunapi::perun_api_password,
                                    'facilitiesManager', 'getHostsByHostname', { 'hostname' => $facts['fqdn']}, $facts['fqdn'])
