@@ -43,8 +43,8 @@ define perunapi::pbsmon (
 
                $_maxspeedgb = $_maxspeed / 1000
 
-               $_value = { 'cs' => "${_ib}${_ifno}x Ethernet $_maxspeedgb Gbit/s", 
-                           'en' => "${_ib}${_ifno}x Ethernet $_maxspeedgb Gbit/s"}
+               $_value = { 'cs' => "${_ib}${_ifno}x Ethernet ${_maxspeedgb} Gbit/s", 
+                           'en' => "${_ib}${_ifno}x Ethernet ${_maxspeedgb} Gbit/s"}
              }
              /facility.*disk/: {
                $_nvme_disks = $facts['disks'].keys.filter |$_k| {
@@ -61,7 +61,13 @@ define perunapi::pbsmon (
                  $_v_nvme = undef
                }
                if $_classic_disks.size > 0 {
-                 $_v_sd = "${_classic_disks.size}x${facts['disks'][$_classic_disks[0]]['size']}"
+                 $_classic_disks_sizes = $_classic_disks.map |$_k, $_v| {
+                    $_v['size']
+                 }
+                 $_v_sd = join(unique($_classic_disks_sizes).map |$_k| {
+                    $_count = count($_classic_disks_sizes, $_k)
+                    "${_count}x ${_k} 7.2"
+                 }, ', ')
                } else {
                  $_v_sd = undef
                }
