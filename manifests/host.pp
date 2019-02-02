@@ -1,7 +1,6 @@
 define perunapi::host (
                    $ensure   = 'present',
   String           $hostname = $facts['fqdn'],
-  Optional[String] $cluster  = undef,
   Hash $attributes           = {},
 ) {
 
