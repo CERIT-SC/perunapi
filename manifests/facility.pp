@@ -141,8 +141,10 @@ define perunapi::facility (
        }
     }
 
-    $_dbhosts = puppetdb_query("resources{type = 'Perunapi::Host' and parameters.cluster = '$::clusterfullname'}").map |$_db_resource| {
-       $_db_resource['parameters']['hostname']
+    if $::clustercullname != undef {
+      $_dbhosts = puppetdb_query("resources{type = 'Perunapi::Host' and parameters.cluster = '$::clusterfullname'}").map |$_db_resource| {
+        $_db_resource['parameters']['hostname']
+      }
     }
 
     $_live_hosts = concat($_dbhosts, $customhosts)
