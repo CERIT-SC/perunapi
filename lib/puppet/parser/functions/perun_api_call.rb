@@ -33,6 +33,9 @@ EOS
   request = request.to_json.gsub(/"undef"/, "null")
 
   caller_host = lookupvar('clusterfullname')
+  if caller_host == nil
+     caller_host = lookupvar('fqdn')
+  end
 
   path = '/var/lib/puppet/perun_cache/'
   unless Puppet::FileSystem.exist?(path)

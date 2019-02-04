@@ -32,6 +32,9 @@ EOS
   end
  
   caller_host = lookupvar('clusterfullname')
+  if caller_host == nil
+     caller_host = lookupvar('fqdn')
+  end
 
   cache_name = "#{path}/#{caller_host}-#{manager}-#{method}#{cachetag}"
 

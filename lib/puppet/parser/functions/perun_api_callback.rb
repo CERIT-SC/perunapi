@@ -28,6 +28,9 @@ EOS
   hostname, user, password, method = arguments
 
   caller_host = lookupvar('clusterfullname')
+  if caller_host == nil
+     caller_host = lookupvar('fqdn')
+  end
 
   path = '/var/lib/puppet/perun_cache/'
   unless Puppet::FileSystem.exist?(path)
