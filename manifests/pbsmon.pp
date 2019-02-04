@@ -52,7 +52,7 @@ define perunapi::pbsmon (
                }
 
                $_classic_disks = $facts['disks'].filter |$_k, $_v| {
-                  $_k =~ /^sd/ and $_v['vendor'] == 'ATA'
+                  $_k =~ /^sd/ and $_v['vendor'] in ['ATA', 'HGST'] 
                }
                
                if $_nvme_disks.size > 0 {
@@ -68,6 +68,7 @@ define perunapi::pbsmon (
                     $_count = count($_classic_disks_sizes, $_k)
                     "${_count}x ${_k} 7.2"
                  }, ', ')
+
                } else {
                  $_v_sd = undef
                }
