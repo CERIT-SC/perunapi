@@ -146,7 +146,8 @@ define perunapi::facility (
         $_db_resource['parameters']['hostname']
       }
     } else {
-      $_dbhosts = []
+      notify{"Skipping dbquery. Clusterfullname is not defined.":}
+      $_dbhosts = [$facts['fqdn']]
     }
 
     $_live_hosts = concat($_dbhosts, $customhosts)

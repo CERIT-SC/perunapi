@@ -37,7 +37,13 @@ class perunapi (
           }
        }
 
+     if $facts['clusterfullname'] != undef {
+        $_cluster = $facts['clusterfullname']
+     } else {
+        $_cluster = $facts['fqdn']
+     }
      perunapi::host{$_perunapi['facility']['name']:
+        cluster    => $_cluster,
         attributes => $_perunapi['attributes'],
      }
 
